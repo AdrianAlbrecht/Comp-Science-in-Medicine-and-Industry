@@ -1,0 +1,137 @@
+heart_disease split into two by 0.4 
+0.4 -> TSS
+0.6 -> TRN
+TRN -> reducts/rules -> calculate rules -> rules + LEM2 + cover parameter 0.9
+TSS -> classify -> test table usin set of rules (?) -> OK
+
+to powtórzyć i użyć jeszcze exhaustive i potem cover 
+PAMIĘTAĆ O ZMIANIE NAZW, BO BĘDZIE SIĘ NADPISYWAĆ!!!!
+
+porównać raporty
+
+LEM
+
+ 	2	1	No. of obj.	Accuracy	Coverage
+2	12	9	48		0.571		0.438
+1	3	32	60		0.914		0.583
+
+True positive rate	
+	0.8	0.78	 	 	 
+
+acc1 = 32 / 32+3 = 0,914
+
+acc2 = 12 / 12+9 = 0,571
+
+total acc = 12+32 / 56 = 0,786
+
+B acc 
+
+T coverage = (12+9+3+32)/(48+60)
+
+cov1 = (12+9)/48
+
+cov2 = (3+32)/60
+
+precision = 12/(12+9) = 0.571
+
+recall = 12 / 12+3 = 0.8
+
+TP = 12
+
+TN = 32
+
+FP = 3
+
+FN = 9
+
+F1 score = precision * recall / (precision + recall) ?? = 0.571 * 0.8 / 1,371 = 0,457 / 1,371 = 0,333
+
+TPR = 12/(12+3) = 0,8
+TNR = 32/(32+9) = 0,780
+
+TP to liczba obiektów z systemu testowego (z pozytywnej klasy) poprawnie sklasyfikowana. 
+Obiekt jest poprawnie sklasyfikowany gdy nasz klasyfikator przydziela taką samą decyzję, jak ukryta decyzja eksperta.
+
+Macierz konfuzji jest raportem z klasyfikacji obiektów testowych na podstawie wiedzy z systemu treningowego. Macierz konfuzji pozwala na ocenę, czy da się stworzyć sensowny model automatyzujący podejmowanie decyzji na używanych danych historycznych, które posiadają decyzję eksperta (są zbiorem rozwiązanych problemów w danym kontekście.)
+
+TN to liczba obiektów z klasy negatywnej poprawnie sklasyfikowana.
+
+FP to liczba obiektów z klasy negatywnej sklasyfikowanych do klasy pozytywnej. (Błędnie sklasyfikowane w klasie pozytywnej).
+
+FN to liczba obiektów z klasy pozytywnej błędnie sklasyfikowanych do klasy negatywnej.
+
+Precision jest równoważna z acc positive (tp/(tp + fn)) % obiektów poprawnie sklasyfikowanych w klasie pozytywnej przez liczbę obiektów sklasyfikowanych w tej klasie. (% poprawnie sklasyfikowanych obiektów w klasie pozytywnej z pośród sklasyfikowanych w tej klasie (tych, które dostały jakąkolwiek decyzję)).
+
+Specificity, acc negative  = tn/(tn+fp) % obiektów poprawnie sklasyfikowanych w klasie negatywnej spośród obiektów sklasyfikowanych w tej klasie 
+
+COV positive - pokrycie w klasie pozytywnej  = (tp+fn) / size of positive class (liczba el. zbioru) % obiektów sklasyfikowanych spośród wszystkich obiektów klasy pozytywnej
+
+COV negative - % oiektów sklasyfikowanych w klasie negatywnej w stosunku do liczby obiektów klasy negatywnej 
+
+Total acc - (tp+tn) / (tp + tn + fn + fp) % obiektów poprawnie sklasyfikowanych w systemie testowym w stosunku do liczby obiektów sklasyfikowanych  w systemie testowym
+
+total cov - (tp + tn + fn + fp) / sumę wielkości klas % obiektów, które dostały jakąkolwiek decyzję podzielone przez liczbę obiektów systemu testowego 
+
+true positive recall (equivalent recall) = tp/(tp+fp) precyzja klasyfikacji klasy pozytywnej, % obiektów poprawnie sklasyfikowanych w klasie pozytywnej w stosunku do liczby obiektów zaklasyfikowanych do klasy pozytywnej 
+analogicznym parametrem jest true negative rate tylko dotyczy klasy negatywnej 
+
+bacc - balans acc - średnia 
+DD. zrobić te raporty i wyliczyć parametry
+
+
+EXHAUSTIVE
+
+acc1 = 37 / (37 + 11)
+acc2 = 50 / (50 + 10)
+total acc = (37 + 50) / (37 + 11 + 10 + 50)
+
+cov1 = (37 + 11) / 48
+cov2 = (10 + 50) / 60
+total cov = (37 + 11 + 10 + 50) / (48 + 60)
+
+
+precision = 37 / (37+11) = 0,771
+
+recall = 37 / (37+10) = 0,787
+
+TP = 37
+
+TN = 50
+
+FP = 10
+
+FN = 11
+
+F1 score = 0,607 / 1,558 = 0,3896
+
+TPR = 37/(37+10) = 0,787
+TNR = 50/(50+11) = 0,81967
+
+COVERING
+
+acc1 = 26 / (26 + 18)
+acc2 = 50 / (50 + 10)
+total acc = (37 + 50) / (37 + 11 + 10 + 50)
+
+cov1 = (37 + 11) / 48
+cov2 = (10 + 50) / 60
+total cov = (37 + 11 + 10 + 50) / (48 + 60)
+
+
+precision = 37 / (37+11) = 0,771
+
+recall = 37 / (37+10) = 0,787
+
+TP = 26
+
+TN = 33
+
+FP = 19
+
+FN = 18
+
+
+
+
+
+
