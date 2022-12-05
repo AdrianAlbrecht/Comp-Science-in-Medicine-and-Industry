@@ -28,7 +28,7 @@ matrix = []
 with open("heart_disese.dat","r") as file:
     matrix = [list(map(lambda a: float(a),line.split())) for line in file]
     
-split_length = (len(matrix)/3)*2 # 0.6 split
+split_length =int((len(matrix)/3)*2) # 0.6 split
 
 #here split table to 0.6 to trn/tst
 
