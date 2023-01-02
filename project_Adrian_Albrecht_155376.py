@@ -11,18 +11,18 @@ from sklearn.preprocessing import StandardScaler
 import sklearn.metrics as metrics
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import roc_auc_score, roc_curve
-from scipy import interpolate
 
 # Random forest with model Cross-validation
 
 #configuration parameters
-number_of_folds = 8
+number_of_folds = 10
 test_split_size = 0.2
 
 # 1) Find proper data
 matrix = []
 # This dat is modified special for the project. I removed some values and changed decission class from numerical value to symbolic.
-with open("heart_disese_project.dat","r") as file:
+# Testing data: heart_disese_project.dat , heart_disese.dat , australian.dat
+with open("heart_disese.dat","r") as file:
     for line in file: 
         line = line.rstrip()
         new_line = []
@@ -44,7 +44,7 @@ with open("heart_disese_project.dat","r") as file:
                 else:
                     new_line.append(str(splitted_line[attrib_no]))
         matrix.append(new_line)       
-# 2) Apply preporcessing:
+# 2) Apply preprocessing:
 no_of_objects = len(matrix)
 no_of_attributes = len(matrix[0])
 print("=================================================================================")
@@ -123,6 +123,11 @@ def bin_cm_params(cm):
     fn=cm[0][1]
     fp=cm[1][0]
     tn=cm[1][1]
+    if((tp+fp)>(tn+fn)):
+        tn=cm[0][0]
+        fp=cm[0][1]
+        fn=cm[1][0]
+        tp=cm[1][1]
     try:          
         precision = round(tp/(tp+fn),8) #positive accuracy
     except:
@@ -176,11 +181,10 @@ tn_CV = []
 no_p_CV = []
 no_n_CV = []
 roc_CV = []
-fpr_CV = []
 tpr_CV = []
 
 no_rows = math.ceil((number_of_folds+1)/5)
-fig, ax = plt.subplots(no_rows, 5, figsize=(10,2*no_rows),num='ROC',constrained_layout=True)
+fig, ax = plt.subplots(no_rows, 5, figsize=(11,2*no_rows),num='ROC',constrained_layout=True)
 for x in range(0,no_rows):
     for y in range(0,5):
         ax[x,y].set_axis_off()
@@ -195,22 +199,6 @@ column=-1
 
 positive_class = None
 negative_class = None
-
-no_1 = 0
-no_2 = 0
-    
-for ele in matrix:
-    if ele[-1]==matrix_dec_class[0]:
-        no_1 +=1
-    else:
-        no_2 +=1
-
-if(no_1>=no_2):
-    positive_class = matrix_dec_class[1]
-    negative_class = matrix_dec_class[0]
-else:
-    positive_class = matrix_dec_class[0]
-    negative_class = matrix_dec_class[1]
 
 for x in range(0, number_of_folds):
     column=column+1
@@ -234,6 +222,27 @@ for x in range(0, number_of_folds):
     sc = StandardScaler()
     X_train = sc.fit_transform(X_train)
     X_test = sc.fit_transform(X_test)
+          
+    classifier = RandomForestClassifier(n_estimators=10,max_depth=4,criterion='entropy',random_state=0)
+    classifier.fit(X_train,y_train)
+    y_pred = classifier.predict(X_test)
+    
+    if(x==0):
+        no_1 = 0
+        no_2 = 0
+            
+        for ele in y_test:
+            if ele==matrix_dec_class[0]:
+                no_1 +=1
+            else:
+                no_2 +=1
+
+        if(no_1>=no_2):
+            positive_class = matrix_dec_class[1]
+            negative_class = matrix_dec_class[0]
+        else:
+            positive_class = matrix_dec_class[0]
+            negative_class = matrix_dec_class[1]
               
     no_positive_class = 0
     no_negative_class = 0
@@ -243,30 +252,25 @@ for x in range(0, number_of_folds):
             no_positive_class +=1
         else:
             no_negative_class +=1
-          
-    classifier = RandomForestClassifier(n_estimators=10,max_depth=4,criterion='entropy',random_state=0)
-    classifier.fit(X_train,y_train)
-    y_pred = classifier.predict(X_test)
     cm = metrics.confusion_matrix(y_test,y_pred)
     tp,fn,fp,tn,precision,specifity,total_accuracy,balance_accuracy,recall,true_negative_rate,coverage_positive,coverage_negative,total_coverage,f1_score, g_mean = bin_cm_params(cm)
     roc_score = round(roc_auc_score(y_test,y_pred),8)
-    fpr, tpr, thresholds = roc_curve(y_test,y_pred)
-    f_t = interpolate.PchipInterpolator(fpr, tpr)
-    f_f = interpolate.PchipInterpolator(tpr, fpr)
-    interp_tpr = f_t(mean_fpr)
-    interp_fpr = f_f(mean_fpr)
+    y_pred_proba = classifier.predict_proba(X_test)[::,1]
+    fpr, tpr, thresholds = roc_curve(y_test,y_pred_proba)
+    interp_tpr = tpr
+    interp_fpr = fpr
     try:
         ax[row,column].plot(interp_fpr, interp_tpr, color=get_color(x), label="ROC fold "+str(x+1)+".")
         ax[row,column].plot(mean_fpr, mean_fpr, "--")
         ax[row,column].set_title("ROC fold "+str(x+1)+".")
-        ax[row,column].set_xlabel('False Positive Rate')
+        ax[row,column].set_xlabel('False Positive Rate \n ROC AUC score: '+str(roc_score))
         ax[row,column].set_ylabel('True Positive Rate')
         ax[row,column].set_axis_on()
     except:
         ax[column].plot(interp_fpr, interp_tpr, color=get_color(x), label="ROC fold "+str(x+1)+".")
         ax[column].plot(mean_fpr, mean_fpr, "--")
         ax[column].set_title("ROC fold "+str(x+1)+".")
-        ax[column].set_xlabel('False Positive Rate')
+        ax[column].set_xlabel('False Positive Rate \n ROC AUC score: '+str(roc_score))
         ax[column].set_ylabel('True Positive Rate')
         ax[column].set_axis_on()
     tp_CV.append(tp)
@@ -276,7 +280,7 @@ for x in range(0, number_of_folds):
     no_p_CV.append(no_positive_class)
     no_n_CV.append(no_negative_class)
     roc_CV.append(roc_score)
-    fpr_CV.append(fpr)
+    tpr = np.interp(mean_fpr,fpr,tpr)
     tpr_CV.append(tpr)
     print("Confusion matrix for "+str(x+1)+". fold:")
     conf_matrix=[
@@ -300,20 +304,10 @@ no_negative_class = float(sum(no_n_CV))
 no_negative_class = no_negative_class/len(no_n_CV)
 roc_score = float(sum(roc_CV))
 roc_score = round(roc_score/len(roc_CV),8)
-fpr = [0 for x in range(len(fpr_CV[0]))]
-for x in fpr_CV:
-    for y in range(0,len(x)):
-        fpr[y]=fpr[y]+x[y]
-all_fpr = []
-for x in fpr:
-     all_fpr.append(x/len(fpr_CV))
-tpr = [0 for x in range(len(tpr_CV[0]))]
-for x in tpr_CV:
-    for y in range(0,len(x)):
-        tpr[y]=tpr[y]+x[y]
-all_tpr = []
-for x in tpr:
-    all_tpr.append(x/len(tpr_CV))
+all_fpr = mean_fpr
+all_tpr = np.mean(tpr_CV, axis=0)
+all_tpr[0] = 0.0
+all_tpr[-1] = 1.0
 cm = [[tp,fn],[fp,tn]]
 tp,fn,fp,tn,precision,specifity,total_accuracy,balance_accuracy,recall,true_negative_rate,coverage_positive,coverage_negative,total_coverage,f1_score,g_mean = bin_cm_params(cm)
 print("=================================================================================")
@@ -329,10 +323,8 @@ print( "Total coverage: "+str(total_coverage),"Total accuracy: "+str(total_accur
       "Recall: "+str(recall), "True negative rate: "+str(true_negative_rate), "F1 score: "+str(f1_score),sep='\n')
 # 7) If possible apply ROC, PR-curve, G-Mean,
 print("ROC AUC score: "+str(roc_score), "G_mean: "+str(g_mean), sep='\n')
-f_t = interpolate.PchipInterpolator(all_fpr, all_tpr)
-f_f = interpolate.PchipInterpolator(all_tpr, all_fpr)
-interp_tpr = f_t(mean_fpr)
-interp_fpr = f_f(mean_fpr)
+interp_tpr = all_tpr
+interp_fpr = all_fpr
 column=column+1
 if(column==5):
     row=row+1
@@ -341,14 +333,14 @@ try:
     ax[row,column].plot(interp_fpr, interp_tpr, color=get_color(number_of_folds), label="Mean ROC")
     ax[row,column].plot(mean_fpr, mean_fpr, "--")
     ax[row,column].set_title("Mean ROC")
-    ax[row,column].set_xlabel('False Positive Rate')
+    ax[row,column].set_xlabel('False Positive Rate \n ROC AUC score: '+str(roc_score))
     ax[row,column].set_ylabel('True Positive Rate')
     ax[row,column].set_axis_on()
 except:
     ax[column].plot(interp_fpr, interp_tpr, color=get_color(number_of_folds), label="Mean ROC")
     ax[column].plot(mean_fpr, mean_fpr, "--")
     ax[column].set_title("Mean ROC")
-    ax[column].set_xlabel('False Positive Rate')
+    ax[column].set_xlabel('False Positive Rate\n ROC AUC score: '+str(roc_score))
     ax[column].set_ylabel('True Positive Rate')
     ax[column].set_axis_on()
 plt.show()
